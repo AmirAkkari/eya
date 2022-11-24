@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Oeuvre;
 use App\Form\Oeuvre1Type;
 use App\Repository\OeuvreRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -25,6 +26,21 @@ class OeuvreController extends AbstractController
         ]);
     }
 
+    #[Route('/note/{id}', name: 'app_oeuvre_note', methods: ['POST'])]
+    public function note(Oeuvre $oeuvre , EntityManagerInterface $em , Request $request)
+    {
+        if ($request->isMethod("POST")) {
+            if ($request->request->get('note') != 0) {
+                $oeuvre->setEvaluation(intval($request->request->get('note')));
+                $em->flush();
+                $this->addFlash('success_message' , 'Merci pour votre evaluation !');
+                return $this->redirect($request->headers->get('referer'));
+            }else{
+                $this->addFlash('error_message' , 'Evaluation à 0  !');
+                return $this->redirect($request->headers->get('referer')); 
+            }
+        }
+    }
      
     #[Route('/front', name: 'oeuvre_index_front', methods: ['GET'])]
     public function oeuvreFront(OeuvreRepository $oeuvreRepository): Response

@@ -33,6 +33,9 @@ class Oeuvre
     #[ORM\ManyToMany(targetEntity: Commande::class, mappedBy: 'oeuvres')]
     private Collection $commandes;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $evaluation = null;
+
     public function __construct()
     {
         $this->commandes = new ArrayCollection();
@@ -133,5 +136,17 @@ class Oeuvre
     public function __toString()
     {
         return $this->title ;
+    }
+
+    public function getEvaluation(): ?int
+    {
+        return $this->evaluation;
+    }
+
+    public function setEvaluation(?int $evaluation): self
+    {
+        $this->evaluation = $evaluation;
+
+        return $this;
     }
 }
