@@ -36,6 +36,9 @@ class Oeuvre
     #[ORM\Column(nullable: true)]
     private ?int $evaluation = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?bool $isFavourite = null;
+
     public function __construct()
     {
         $this->commandes = new ArrayCollection();
@@ -146,6 +149,18 @@ class Oeuvre
     public function setEvaluation(?int $evaluation): self
     {
         $this->evaluation = $evaluation;
+
+        return $this;
+    }
+
+    public function isIsFavourite(): ?bool
+    {
+        return $this->isFavourite;
+    }
+
+    public function setIsFavourite(?bool $isFavourite): self
+    {
+        $this->isFavourite = $isFavourite;
 
         return $this;
     }

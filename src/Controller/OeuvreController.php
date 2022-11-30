@@ -5,7 +5,9 @@ namespace App\Controller;
 use App\Entity\Oeuvre;
 use App\Form\Oeuvre1Type;
 use App\Repository\OeuvreRepository;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\Entity;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -24,6 +26,30 @@ class OeuvreController extends AbstractController
         return $this->render('oeuvre/index.html.twig', [
             'oeuvres' => $oeuvreRepository->findAll(),
         ]);
+    }
+
+    #[Route('/wishlist', name: 'app_oeuvre_wishlist_index', methods: ['GET'])]
+    public function wishlist(OeuvreRepository $oeuvreRepository): Response
+    {
+        return $this->render('oeuvre/wishlist.html.twig', [
+            'oeuvres' => $oeuvreRepository->findBy(['isFavourite' => true]),
+        ]);
+    }
+
+    #[Route('/wishlist/add/{id}', name: 'app_oeuvre_wishlist_add')]
+    public function wishlistAdd(Oeuvre $oeuvre ,Request $request ,OeuvreRepository $oeuvreRepository , EntityManagerInterface $em): Response
+    {
+            $oeuvre->setIsFavourite(1);
+            $em->flush();
+            return $this->redirectToRoute('app_oeuvre_wishlist_index');
+    }
+    
+    #[Route('/wishlist/delete/{id}', name: 'app_oeuvre_wishlist_delete')]
+    public function wishlistDelete(Oeuvre $oeuvre ,Request $request ,OeuvreRepository $oeuvreRepository , EntityManagerInterface $em): Response
+    {
+            $oeuvre->setIsFavourite(0);
+            $em->flush();
+            return $this->redirectToRoute('app_oeuvre_wishlist_index');
     }
 
     #[Route('/note/{id}', name: 'app_oeuvre_note', methods: ['POST'])]

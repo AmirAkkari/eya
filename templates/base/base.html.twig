@@ -50,7 +50,16 @@
 <link rel="stylesheet" href="/css/bootstrap.min.css">
 <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
+<style>
+  .fa-heart{
+    transition: all 0.3s ease;
+  }
 
+  .fa-heart:hover{
+    transform: scale(1.2);
+    color:red ;
+  }
+</style>
    
     {% endblock %}
   </head>
@@ -160,7 +169,9 @@
               </ul>
             </div>
             <!-- end site-menu -->
-            <div class="search-button"> <i class="far fa-search"></i> </div>
+            <a href="{{ path('app_oeuvre_wishlist_index') }}"><i class="far fa-heart" ></i></a>
+            <div class="search-button"> 
+              <i class="far fa-search"></i> </div>
             <!-- end search-button -->
             <div class="hamburger-menu">
               <svg class="hamburger" width="30" height="30" viewBox="0 0 30 30">

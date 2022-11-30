@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use DateTimeImmutable;
 use App\Entity\Commande;
 use App\Form\CommandeType;
@@ -38,7 +40,7 @@ class CommandeController extends AbstractController
             if (count($errors) > 0) {
                
                 $errorsString = (string) $errors;
-
+                // dd(1);
                 return $this->redirectToRoute('cart_index', ["errors" => $errors], Response::HTTP_SEE_OTHER);
             }
             $session = $request->getSession();
@@ -53,13 +55,14 @@ class CommandeController extends AbstractController
                 $commande->setTotal($total);
                 $session->set('cart', []);
             } else {
+                dd(1);
                 $this->addFlash("error_message", "Votre panier est vide");
                 return $this->redirectToRoute('cart_index');
             }
             $commande->setCreatedAt(new DateTimeImmutable("now"));
             $commandeRepository->save($commande, true);
 
-            return $this->redirectToRoute('app_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_commande_pdf', ['id' => $commande->getId()], Response::HTTP_SEE_OTHER);
         }
 
         return $this->renderForm('commande/new.html.twig', [
@@ -74,6 +77,36 @@ class CommandeController extends AbstractController
     {
         return $this->render('commande/show.html.twig', [
             'commande' => $commande,
+        ]);
+    }
+
+    #[Route('/pdf/{id}', name: 'app_commande_pdf', methods: ['GET'])]
+    public function pdf(Commande $commande)
+    {
+        $pdfOptions = new Options();
+        $pdfOptions->set('defaultFont', 'Arial');
+        
+        // Instantiate Dompdf with our options
+        $dompdf = new Dompdf($pdfOptions);
+        
+        // Retrieve the HTML generated in our twig file
+        $html = $this->renderView('commande/pdf.html.twig', [
+            'title' => "Welcome to our PDF Test",
+            'commande' => $commande
+        ]);
+        
+        // Load HTML to Dompdf
+        $dompdf->loadHtml($html);
+        
+        // (Optional) Setup the paper size and orientation 'portrait' or 'portrait'
+        $dompdf->setPaper('A4', 'portrait');
+
+        // Render the HTML as PDF
+        $dompdf->render();
+        
+        // Output the generated PDF to Browser (force download)
+        return $dompdf->stream("mypdf.pdf", [
+            "Attachment" => false
         ]);
     }
 

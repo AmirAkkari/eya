@@ -232,6 +232,11 @@
     <div class="row justify-content-center">
       {% for oeuvre in oeuvres %}
       <div class="col-lg-4 col-md-6">
+        {% if oeuvre.isFavourite == true %}
+        <a href="{{ path('app_oeuvre_wishlist_add' , {'id' : oeuvre.id}) }}"><i class="far fa-heart" style="color:red;"></i></a>
+        {% else %}
+        <a href="{{ path('app_oeuvre_wishlist_add' , {'id' : oeuvre.id}) }}"><i class="far fa-heart" ></i></a>
+        {% endif %}
         <div class="exhibition-box" data-scroll data-scroll-speed="-1">
           <figure>
             <a href="#"

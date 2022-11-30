@@ -34,10 +34,8 @@ class Commande
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $created_at = null;
-    /**
-     * @Assert\NotBlank
-     * @Assert\Regex("/^[0-9]+$/")
-     */
+
+    
     #[ORM\Column]
     private ?float $total = null;
 
