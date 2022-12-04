@@ -2,9 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\Evaluation;
+use Gedmo\Mapping\Annotation as Gedmo;
 use App\Entity\Oeuvre;
+use App\Entity\Wishlist;
 use App\Form\Oeuvre1Type;
+use App\Repository\EvaluationRepository;
 use App\Repository\OeuvreRepository;
+use App\Repository\WishlistRepository;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\Entity;
@@ -18,8 +23,8 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 #[Route('/oeuvre')]
 class OeuvreController extends AbstractController
 {
- 
-    
+
+
     #[Route('/', name: 'app_oeuvre_index', methods: ['GET'])]
     public function index(OeuvreRepository $oeuvreRepository): Response
     {
@@ -28,46 +33,68 @@ class OeuvreController extends AbstractController
         ]);
     }
 
-    #[Route('/wishlist', name: 'app_oeuvre_wishlist_index', methods: ['GET'])]
-    public function wishlist(OeuvreRepository $oeuvreRepository): Response
+    #[Route('/wishlist', name: 'app_oeuvre_wishlist_index')]
+    public function wishlist(OeuvreRepository $oeuvreRepository , WishlistRepository $wishlistRepository ): Response
     {
+        $oeuvres = [];
+
+        foreach ($oeuvreRepository->findAll() as $value) {
+           if($value->getWishlist()){
+                $oeuvres[] = ["item" => $value];
+           }
+        }
+        // dd($oeuvres);
         return $this->render('oeuvre/wishlist.html.twig', [
-            'oeuvres' => $oeuvreRepository->findBy(['isFavourite' => true]),
+            'oeuvres' => $oeuvres,
         ]);
     }
 
     #[Route('/wishlist/add/{id}', name: 'app_oeuvre_wishlist_add')]
-    public function wishlistAdd(Oeuvre $oeuvre ,Request $request ,OeuvreRepository $oeuvreRepository , EntityManagerInterface $em): Response
+    public function wishlistAdd(Oeuvre $oeuvre, Request $request, OeuvreRepository $oeuvreRepository, EntityManagerInterface $em , WishlistRepository $wishlistRepository): Response
     {
-            $oeuvre->setIsFavourite(1);
-            $em->flush();
-            return $this->redirectToRoute('app_oeuvre_wishlist_index');
+        $wishlist = new Wishlist ;
+        $wishlist->addOeuvre($oeuvre);
+        $em->persist($wishlist);
+        $em->flush();
+        return $this->redirectToRoute('app_oeuvre_wishlist_index');
     }
-    
+
     #[Route('/wishlist/delete/{id}', name: 'app_oeuvre_wishlist_delete')]
-    public function wishlistDelete(Oeuvre $oeuvre ,Request $request ,OeuvreRepository $oeuvreRepository , EntityManagerInterface $em): Response
+    public function wishlistDelete(Oeuvre $oeuvre, Request $request, OeuvreRepository $oeuvreRepository, EntityManagerInterface $em , WishlistRepository $wishlistRepository): Response
     {
-            $oeuvre->setIsFavourite(0);
-            $em->flush();
-            return $this->redirectToRoute('app_oeuvre_wishlist_index');
+        
+        $wishlist =$wishlistRepository->find($oeuvre->getWishlist());
+        $oeuvre->setWishlist(null);
+        $em->remove($wishlist);
+        $em->flush();
+        return $this->redirectToRoute('app_oeuvre_wishlist_index');
     }
 
     #[Route('/note/{id}', name: 'app_oeuvre_note', methods: ['POST'])]
-    public function note(Oeuvre $oeuvre , EntityManagerInterface $em , Request $request)
+    public function note(Oeuvre $oeuvre, EntityManagerInterface $em, Request $request, EvaluationRepository $evaluationRepository)
     {
         if ($request->isMethod("POST")) {
             if ($request->request->get('note') != 0) {
-                $oeuvre->setEvaluation(intval($request->request->get('note')));
+                $evaluation = $evaluationRepository->findOneBy(['oeuvre' => $oeuvre->getId()]);
+                if (!$evaluation) {
+                    $evaluation = new Evaluation ;
+                    $evaluation->setValeur($request->request->get('note'));
+                    $evaluation->setOeuvre($oeuvre);
+                    $evaluation->setValeur($request->request->get('note'));
+                    $em->persist($evaluation);
+                }else{
+                    $evaluation->setValeur($request->request->get('note'));
+                }
                 $em->flush();
-                $this->addFlash('success_message' , 'Merci pour votre evaluation !');
+                $this->addFlash('success_message', 'Merci pour votre evaluation !');
                 return $this->redirect($request->headers->get('referer'));
-            }else{
-                $this->addFlash('error_message' , 'Evaluation à 0  !');
-                return $this->redirect($request->headers->get('referer')); 
+            } else {
+                $this->addFlash('error_message', 'Evaluation à 0  !');
+                return $this->redirect($request->headers->get('referer'));
             }
         }
     }
-     
+
     #[Route('/front', name: 'oeuvre_index_front', methods: ['GET'])]
     public function oeuvreFront(OeuvreRepository $oeuvreRepository): Response
     {
@@ -92,7 +119,7 @@ class OeuvreController extends AbstractController
             if ($image) {
                 $originalFilename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
                 $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename.'-'.uniqid().'.'.$image->guessExtension();
+                $newFilename = $safeFilename . '-' . uniqid() . '.' . $image->guessExtension();
                 try {
                     $image->move(
                         $this->getParameter('oeuvres_directory'),
@@ -108,7 +135,7 @@ class OeuvreController extends AbstractController
             }
             $oeuvreRepository->save($oeuvre, true);
 
-            $this->addFlash('success_message' , 'Oeuvre ajoutée avec succés');
+            $this->addFlash('success_message', 'Oeuvre ajoutée avec succés');
             return $this->redirectToRoute('app_oeuvre_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -118,7 +145,7 @@ class OeuvreController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_oeuvre_show', methods: ['GET'])]
+    #[Route('/{slug}', name: 'app_oeuvre_show', methods: ['GET'])]
     public function show(Oeuvre $oeuvre): Response
     {
         return $this->render('oeuvre/show.html.twig', [
@@ -127,7 +154,7 @@ class OeuvreController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_oeuvre_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Oeuvre $oeuvre, OeuvreRepository $oeuvreRepository , SluggerInterface $slugger): Response
+    public function edit(Request $request, Oeuvre $oeuvre, OeuvreRepository $oeuvreRepository, SluggerInterface $slugger): Response
     {
         $form = $this->createForm(Oeuvre1Type::class, $oeuvre);
         $form->handleRequest($request);
@@ -140,7 +167,7 @@ class OeuvreController extends AbstractController
             if ($image) {
                 $originalFilename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
                 $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename.'-'.uniqid().'.'.$image->guessExtension();
+                $newFilename = $safeFilename . '-' . uniqid() . '.' . $image->guessExtension();
                 try {
                     $image->move(
                         $this->getParameter('oeuvres_directory'),
@@ -155,7 +182,7 @@ class OeuvreController extends AbstractController
                 $oeuvre->setImage($newFilename);
             }
             $oeuvreRepository->save($oeuvre, true);
-            $this->addFlash('success_message' , 'Oeuvre modifiée avec succés');
+            $this->addFlash('success_message', 'Oeuvre modifiée avec succés');
             return $this->redirectToRoute('app_oeuvre_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -169,9 +196,7 @@ class OeuvreController extends AbstractController
     public function delete(Request $request, Oeuvre $oeuvre, OeuvreRepository $oeuvreRepository): Response
     {
         $oeuvreRepository->remove($oeuvre, true);
-        $this->addFlash('success_message' , 'Oeuvre supprimée avec succés');
+        $this->addFlash('success_message', 'Oeuvre supprimée avec succés');
         return $this->redirectToRoute('app_oeuvre_index', [], Response::HTTP_SEE_OTHER);
     }
-
-   
 }

@@ -34,10 +34,22 @@ class Oeuvre
     private Collection $commandes;
 
     #[ORM\Column(nullable: true)]
-    private ?int $evaluation = null;
+    private ?bool $isFavourite = null;
+
+    #[ORM\OneToOne(mappedBy: 'oeuvre', cascade: ['persist', 'remove'])]
+    private ?Evaluation $evaluation = null;
+
+    #[ORM\ManyToOne(inversedBy: 'oeuvre')]
+    private ?Wishlist $wishlist = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $slug = null;
 
     #[ORM\Column(nullable: true)]
-    private ?bool $isFavourite = null;
+    private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $updatedAt = null;
 
     public function __construct()
     {
@@ -141,18 +153,6 @@ class Oeuvre
         return $this->title ;
     }
 
-    public function getEvaluation(): ?int
-    {
-        return $this->evaluation;
-    }
-
-    public function setEvaluation(?int $evaluation): self
-    {
-        $this->evaluation = $evaluation;
-
-        return $this;
-    }
-
     public function isIsFavourite(): ?bool
     {
         return $this->isFavourite;
@@ -161,6 +161,76 @@ class Oeuvre
     public function setIsFavourite(?bool $isFavourite): self
     {
         $this->isFavourite = $isFavourite;
+
+        return $this;
+    }
+
+    public function getEvaluation(): ?Evaluation
+    {
+        return $this->evaluation;
+    }
+
+    public function setEvaluation(?Evaluation $evaluation): self
+    {
+        // unset the owning side of the relation if necessary
+        if ($evaluation === null && $this->evaluation !== null) {
+            $this->evaluation->setOeuvre(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($evaluation !== null && $evaluation->getOeuvre() !== $this) {
+            $evaluation->setOeuvre($this);
+        }
+
+        $this->evaluation = $evaluation;
+
+        return $this;
+    }
+
+    public function getWishlist(): ?Wishlist
+    {
+        return $this->wishlist;
+    }
+
+    public function setWishlist(?Wishlist $wishlist): self
+    {
+        $this->wishlist = $wishlist;
+
+        return $this;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(?string $slug): self
+    {
+        $this->slug = $slug;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(?\DateTimeImmutable $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
 
         return $this;
     }

@@ -55,7 +55,7 @@ class CommandeController extends AbstractController
                 $commande->setTotal($total);
                 $session->set('cart', []);
             } else {
-                dd(1);
+                // dd(1);
                 $this->addFlash("error_message", "Votre panier est vide");
                 return $this->redirectToRoute('cart_index');
             }

@@ -1,10 +1,10 @@
 {% extends "base/base.html.twig" %} {% block body %}
 <style>
-  #submit{
+  #submit {
     cursor: pointer;
     transition: all 0.3s ease;
   }
-  #submit:hover{
+  #submit:hover {
     transform: scale(1.2);
     color: green;
   }
@@ -31,17 +31,33 @@
               </tr>
               <tr>
                 <td>Evaluation</td>
-                <td>: <form action="{{ path('app_oeuvre_note' , {'id' : oeuvre.id}) }}" method="post" id="noteForm">
-                  <div class="stars" style="font-size:larger">
-                    <i class="lar la-star" data-value="1"></i
-                    ><i class="lar la-star" data-value="2"></i
-                    ><i class="lar la-star" data-value="3"></i
-                    ><i class="lar la-star" data-value="4"></i
-                    ><i class="lar la-star" data-value="5"></i>
-                  </div>
-                  <input type="hidden" name="note" id="note" value="{{ oeuvre.evaluation }}" />
-                  <i class="fa-solid fa-thumbs-up" id="submit" onclick="document.querySelector('#noteForm').submit()"></i>
-                </form></td>
+                <td>
+                  :
+                  <form
+                    action="{{ path('app_oeuvre_note', { id: oeuvre.id }) }}"
+                    method="post"
+                    id="noteForm"
+                  >
+                    <div class="stars" style="font-size: larger">
+                      <i class="lar la-star" data-value="1"></i
+                      ><i class="lar la-star" data-value="2"></i
+                      ><i class="lar la-star" data-value="3"></i
+                      ><i class="lar la-star" data-value="4"></i
+                      ><i class="lar la-star" data-value="5"></i>
+                    </div>
+                    <input
+                      type="hidden"
+                      name="note"
+                      id="note"
+                      value="{{ oeuvre.evaluation.valeur }}"
+                    />
+                    <i
+                      class="fa-solid fa-thumbs-up"
+                      id="submit"
+                      onclick="document.querySelector('#noteForm').submit()"
+                    ></i>
+                  </form>
+                </td>
               </tr>
               <tr>
                 <td>Catégorie de l'oeuvre</td>
@@ -58,9 +74,7 @@
               <figure><img src="images/icon01.png" alt="Image" /></figure>
               <div class="content">
                 <h5>Ajouter au panier</h5>
-                <p>
-                 
-                </p>
+                <p></p>
               </div>
               <!-- end content -->
             </li>
@@ -104,65 +118,65 @@
     <!-- end row -->
   </div>
   <!-- end container -->
-</section>  
+</section>
 
 <a href="{{ path('app_oeuvre_edit', { id: oeuvre.id }) }}">edit</a>
-<script>	
+<script>
   window.onload = () => {
     // On va chercher toutes les étoiles
     const stars = document.querySelectorAll(".la-star");
-    
+
     // On va chercher l'input
     const note = document.querySelector("#note");
-    resetStars('{{ oeuvre.evaluation }}');
-    // On boucle sur les étoiles pour le ajouter des écouteurs d'évènements
-    for(star of stars){
-        // On écoute le survol
-        star.addEventListener("mouseover", function(){
-            resetStars();
-            this.style.color = "red";
-            this.classList.add("las");
-            this.classList.remove("lar");
-            // L'élément précédent dans le DOM (de même niveau, balise soeur)
-            let previousStar = this.previousElementSibling;
+    resetStars("{{ oeuvre.evaluation.valeur}}");
 
-            while(previousStar){
-                // On passe l'étoile qui précède en rouge
-                previousStar.style.color = "red";
-                previousStar.classList.add("las");
-                previousStar.classList.remove("lar");
-                // On récupère l'étoile qui la précède
-                previousStar = previousStar.previousElementSibling;
-            }
-        });
+    for (star of stars) {
+      // On écoute le survol
+      star.addEventListener("mouseover", function () {
+        resetStars();
+        this.style.color = "red";
+        this.classList.add("las");
+        this.classList.remove("lar");
 
-        // On écoute le clic
-        star.addEventListener("click", function(){
-            note.value = this.dataset.value;
-        });
+        let previousStar = this.previousElementSibling;
 
-        star.addEventListener("mouseout", function(){
-            resetStars(note.value);
-        });
+        while (previousStar) {
+          // On passe l'étoile qui précède en rouge
+          previousStar.style.color = "red";
+          previousStar.classList.add("las");
+          previousStar.classList.remove("lar");
+          // On récupère l'étoile qui la précède
+          previousStar = previousStar.previousElementSibling;
+        }
+      });
+
+      // On écoute le clic
+      star.addEventListener("click", function () {
+        note.value = this.dataset.value;
+      });
+
+      star.addEventListener("mouseout", function () {
+        resetStars(note.value);
+      });
     }
 
     /**
      * Reset des étoiles en vérifiant la note dans l'input caché
-     * @param {number} note 
+     * @param {number} note
      */
-    function resetStars(note = 0){
-        for(star of stars){
-            if(star.dataset.value > note){
-                star.style.color = "black";
-                star.classList.add("lar");
-                star.classList.remove("las");
-            }else{
-                star.style.color = "red";
-                star.classList.add("las");
-                star.classList.remove("lar");
-            }
+    function resetStars(note = 0) {
+      for (star of stars) {
+        if (star.dataset.value > note) {
+          star.style.color = "black";
+          star.classList.add("lar");
+          star.classList.remove("las");
+        } else {
+          star.style.color = "red";
+          star.classList.add("las");
+          star.classList.remove("lar");
         }
+      }
     }
-}
+  };
 </script>
 {% endblock %}

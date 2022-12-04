@@ -18,9 +18,9 @@
             {% for key ,item in oeuvres %}
             <tr>
               <td>{{ key +1 }}</td>
-              <td>{{ item.title }}</td>
-              <td>{{ item.price }} TND</td>
-              <td>{{ item.description }}</td>
+              <td>{{ item.item.title }}</td>
+              <td>{{ item.item.price }} TND</td>
+              <td>{{ item.item.description }}</td>
               <td>
                 <a href="#" class="btn btn-danger btn-rounded" onclick="Swal.fire({
                     title: 'Etes-vous sur  ?',
@@ -32,7 +32,7 @@
                     /* Read more about isConfirmed, isDenied below */
                     if (result.isConfirmed) {
                       Swal.fire('Supprimé!', '', 'success').then(()=>{
-                        window.location.href = `{{ path('app_oeuvre_wishlist_delete', {'id': item.id}) }}`
+                        window.location.href = `{{ path('app_oeuvre_wishlist_delete', {'id': item.item.id}) }}`
                       })
                       
                     } else if (result.isDenied) {
